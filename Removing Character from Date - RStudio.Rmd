@@ -1,0 +1,72 @@
+---
+title: "Removing Character from Date - RStudio"
+author: "stang3g"
+date: "2022-11-24"
+output: html_document
+---
+
+**The below steps will show you how to remove a character from a 'character variable' and then transform into a date variable.** 
+
+
+**Loading libraries that will be used**  
+```{r}
+library(tidyverse)  
+
+library(lubridate) # used to make variables into date 
+
+```
+
+**For this demo, Covid-19 data set from Johns Hopkins University will be used.**  
+data source URF :<https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/> 
+
+**Pulling in data urls and putting then in a vector**  
+```{r}
+url_in <- ("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/")  
+
+file_names <- c("time_series_covid19_confirmed_US.csv",
+                "time_series_covid19_confirmed_global.csv",
+                "time_series_covid19_deaths_US.csv",
+                "time_series_covid19_deaths_global.csv",
+                "time_series_covid19_recovered_global.csv")  
+library(stringr) 
+urls <- str_c(url_in,file_names) 
+
+
+```
+
+**importing data from urls**    
+```{r import_data, message=FALSE}
+Us_cases <- read.csv(urls[1])
+global_cases <- read.csv(urls[2])
+
+```
+
+**cleaning up global_cases table and create a new global table**  
+pivot columns and changing variable names then creating a new table.
+  
+```{r}
+global_cases2 <- global_cases %>%
+  pivot_longer(cols = -c('Province.State',
+                         'Country.Region', Lat, Long),
+              names_to = "date",
+              values_to = "cases") %>%
+  select(-c(Lat,Long))
+  
+
+```
+
+**Cleaning data by removing the x in the date variable from the data set**  
+```{r}
+global_cases2$date <-gsub("X","", as.character(global_cases2$date))
+```
+
+**first replace "." with "_" for the date variable so that you can convert to date value **  
+```{r}
+global_cases2$date <-gsub("[.]","-", (global_cases2$date))
+
+```
+**changing Char date to date variable**  
+```{r}
+library(lubridate)
+global_cases2$date <- mdy(global_cases2$date)
+```
